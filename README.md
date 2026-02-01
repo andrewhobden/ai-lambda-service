@@ -24,6 +24,69 @@ npx local-lambda start -c examples/basic.json
 - Sample config: [examples/basic.json](examples/basic.json)
 - Sample JS handler: [examples/handlers/sum.js](examples/handlers/sum.js)
 
+### Minimal config example
+Save this as `config.json` (paths in `jsHandler.file` are relative to this file):
+
+```json
+{
+	"port": 4000,
+	"endpoints": [
+		{
+			"name": "hello-ai",
+			"description": "Return a friendly greeting using an OpenAI prompt.",
+			"path": "/ai-greeting",
+			"method": "POST",
+			"inputSchema": {
+				"type": "object",
+				"required": ["name"],
+				"properties": { "name": { "type": "string" } },
+				"additionalProperties": false
+			},
+			"outputSchema": {
+				"type": "object",
+				"required": ["greeting"],
+				"properties": { "greeting": { "type": "string" } },
+				"additionalProperties": false
+			},
+			"aiPrompt": {
+				"prompt": "Write a JSON object with a key 'greeting' that greets the provided name in one short sentence.",
+				"model": "gpt-4o-mini",
+				"temperature": 0.4
+			}
+		},
+		{
+			"name": "sum-js",
+			"description": "Sum two numbers using a JS handler.",
+			"path": "/sum",
+			"method": "POST",
+			"inputSchema": {
+				"type": "object",
+				"required": ["a", "b"],
+				"properties": { "a": { "type": "number" }, "b": { "type": "number" } },
+				"additionalProperties": false
+			},
+			"outputSchema": {
+				"type": "object",
+				"required": ["sum"],
+				"properties": { "sum": { "type": "number" } },
+				"additionalProperties": false
+			},
+			"jsHandler": {
+				"file": "handlers/sum.js"
+			}
+		}
+	]
+}
+```
+
+Create `handlers/sum.js` next to the config:
+
+```js
+module.exports = async (input) => {
+	return { sum: Number(input.a) + Number(input.b) };
+};
+```
+
 ### Environment
 - `.env` is loaded automatically.
 - `OPENAI_API_KEY` is required for any endpoint using `aiPrompt`.
