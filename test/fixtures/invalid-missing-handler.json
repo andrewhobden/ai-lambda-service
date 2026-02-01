@@ -1,0 +1,10 @@
+{
+  "endpoints": [
+    {
+      "name": "invalid",
+      "description": "Missing handler",
+      "path": "/invalid",
+      "method": "GET"
+    }
+  ]
+}

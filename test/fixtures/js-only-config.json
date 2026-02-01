@@ -1,0 +1,30 @@
+{
+  "endpoints": [
+    {
+      "name": "test-sum",
+      "description": "Sum two numbers for tests.",
+      "path": "/sum",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["a", "b"],
+        "properties": {
+          "a": { "type": "number" },
+          "b": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["sum"],
+        "properties": {
+          "sum": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "jsHandler": {
+        "file": "handlers/sum.js"
+      }
+    }
+  ]
+}

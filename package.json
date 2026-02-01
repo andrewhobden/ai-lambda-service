@@ -1,0 +1,43 @@
+{
+  "name": "local-lambda",
+  "version": "1.0.0",
+  "description": "Run a local REST server from a declarative JSON config with AI or JS handlers.",
+  "main": "bin/local-lambda.js",
+  "bin": {
+    "local-lambda": "./bin/local-lambda.js"
+  },
+  "scripts": {
+    "start": "node bin/local-lambda.js start",
+    "dev": "node bin/local-lambda.js start -c examples/basic.json -p 3000",
+    "test": "mocha \"test/**/*.test.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewhobden/local-lambda.git"
+  },
+  "keywords": [
+    "rest",
+    "lambda",
+    "local",
+    "openai",
+    "cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/andrewhobden/local-lambda/issues"
+  },
+  "homepage": "https://github.com/andrewhobden/local-lambda#readme",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.73.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.8.2",
+    "supertest": "^7.2.2"
+  }
+}
