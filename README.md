@@ -20,6 +20,27 @@ npx ai-lambda-service start -c examples/basic.json
 - JS handler: `POST http://localhost:4000/sum` with `{ "a": 1, "b": 2 }`
 - AI prompt (GET): `GET http://localhost:4000/countries?continent=Europe`
 
+5) **Or use the interactive dashboard** — open `http://localhost:4000` in your browser!
+
+## Interactive Dashboard
+
+When you visit the root URL of your running service, you'll see an interactive dashboard that lets you explore and test all endpoints without writing any code or using curl.
+
+![Interactive Dashboard](docs/dashboard-screenshot.png)
+
+**Features:**
+- Lists all configured endpoints with method, path, and description
+- Shows handler type (AI Prompt or JS Handler) for each endpoint
+- Auto-generates input fields based on each endpoint's `inputSchema`
+- Send requests with one click and see formatted JSON responses
+- Displays response status and timing information
+
+This makes it easy to:
+- Explore available endpoints during development
+- Test endpoints with different inputs
+- Debug responses without leaving the browser
+- Share API documentation with your team
+
 ## Configuration
 - See [CONFIG.md](CONFIG.md) for the JSON schema and field descriptions.
 - Sample config: [examples/basic.json](examples/basic.json)
