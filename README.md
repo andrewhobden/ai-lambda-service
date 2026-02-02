@@ -130,6 +130,7 @@ ai-lambda-service stop
 - Routes are bound in [src/server.js](src/server.js) using Express.
 - Each endpoint uses either an OpenAI chat completion or a JS handler via [src/engine.js](src/engine.js).
 - Input/output validation uses JSON Schema per-endpoint.
+- **Output format**: When `outputSchema` is defined, responses are JSON. Without it, AI endpoints return plain text directly—useful for translations, summaries, etc.
 
 ## Testing
 ```

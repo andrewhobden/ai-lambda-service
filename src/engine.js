@@ -44,6 +44,12 @@ async function createPromptHandler(endpoint, logger, defaultModel) {
       throw new Error('No content returned from OpenAI.');
     }
 
+    // If no outputSchema, return raw text directly
+    if (!endpoint.outputSchema) {
+      return content;
+    }
+
+    // Otherwise parse as JSON
     try {
       return JSON.parse(content);
     } catch (err) {

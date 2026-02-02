@@ -185,12 +185,19 @@ function generateIndexPage(config, port) {
         }
 
         const elapsed = Math.round(performance.now() - startTime);
-        const data = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        let data;
+        if (contentType.includes('application/json')) {
+          data = await response.json();
+          bodyEl.textContent = JSON.stringify(data, null, 2);
+        } else {
+          data = await response.text();
+          bodyEl.textContent = data;
+        }
 
         statusEl.textContent = response.ok ? \`✓ \${response.status} OK\` : \`✗ \${response.status} Error\`;
         statusEl.className = 'response-status ' + (response.ok ? 'success' : 'error');
         timeEl.textContent = \`\${elapsed}ms\`;
-        bodyEl.textContent = JSON.stringify(data, null, 2);
       } catch (err) {
         const elapsed = Math.round(performance.now() - startTime);
         statusEl.textContent = '✗ Network Error';
@@ -268,6 +275,11 @@ async function startServer({ config, port, logger = console }) {
             error: 'Handler output failed validation',
             details: validateOutput.errors
           });
+        }
+
+        // If output is a string (no outputSchema), send as plain text
+        if (typeof output === 'string') {
+          return res.type('text/plain').send(output);
         }
 
         return res.json(output);

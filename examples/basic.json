@@ -99,7 +99,7 @@
       },
       "description": "Translate the text into Chinese",
       "aiPrompt": {
-        "prompt": "Translate the text",
+        "prompt": "Translate the provided text into Chinese. Return only the translated text, nothing else.",
         "model": "gpt-5.2"
       }
     }

@@ -27,8 +27,31 @@ Environment:
 
 ## AI prompt behavior
 - Builds messages with `description` as the system message and `aiPrompt.prompt` + input JSON as the user message.
-- Uses `response_format: json_object` when `outputSchema` is provided.
-- Default model: `gpt-5-mini`; default temperature: `1` (only supported value for this model).
+- Model priority: per-endpoint `aiPrompt.model` > top-level `defaultModel` > built-in default `gpt-5-mini`.
+- Default temperature: `1`.
+
+### Output handling
+- **With `outputSchema`**: Uses `response_format: json_object` to enforce structured JSON output. The response is parsed and validated against the schema, then returned as `application/json`.
+- **Without `outputSchema`**: The raw LLM text is returned directly as `text/plain`. Use this for free-form text responses like translations, summaries, or creative writing.
+
+**Example without outputSchema:**
+```json
+{
+  "name": "translate",
+  "path": "/translate",
+  "method": "GET",
+  "description": "Translate text into Chinese",
+  "inputSchema": {
+    "type": "object",
+    "required": ["text"],
+    "properties": { "text": { "type": "string" } }
+  },
+  "aiPrompt": {
+    "prompt": "Translate the provided text into Chinese. Return only the translated text, nothing else."
+  }
+}
+```
+This endpoint returns plain text like `你好` instead of JSON.
 
 ## JS handler behavior
 - The handler module is loaded via `require` using a path relative to the config file directory.
