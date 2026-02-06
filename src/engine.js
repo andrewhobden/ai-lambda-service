@@ -2,6 +2,7 @@ const path = require('node:path');
 const { exec, spawn, execSync } = require('node:child_process');
 const { promisify } = require('node:util');
 const readline = require('node:readline');
+const { compileTemplate } = require('./template');
 
 const execAsync = promisify(exec);
 
@@ -282,12 +283,30 @@ async function getWorkiqMcpClient(logger) {
   return mcpClient;
 }
 
+// Handler registry for chain handler support
+const handlerRegistry = new Map();
+
+function registerHandler(name, handler, validateInput, validateOutput) {
+  handlerRegistry.set(name, { handler, validateInput, validateOutput });
+}
+
+function getHandler(name) {
+  return handlerRegistry.get(name);
+}
+
+function clearHandlerRegistry() {
+  handlerRegistry.clear();
+}
+
 async function createHandler(endpoint, baseDir, logger = console, config = {}) {
   if (endpoint.aiPrompt) {
     return createPromptHandler(endpoint, logger, config);
   }
   if (endpoint.workiqQuery) {
     return createWorkiqHandler(endpoint, logger);
+  }
+  if (endpoint.chainHandler) {
+    return createChainHandler(endpoint, logger);
   }
   return createJsHandler(endpoint, baseDir);
 }
@@ -442,6 +461,167 @@ async function createWorkiqHandler(endpoint, logger) {
   };
 }
 
+// Custom error class for chain execution failures
+class ChainExecutionError extends Error {
+  constructor(message, stepIndex, stepName, endpoint, cause) {
+    super(message);
+    this.name = 'ChainExecutionError';
+    this.stepIndex = stepIndex;
+    this.stepName = stepName;
+    this.endpoint = endpoint;
+    this.cause = cause;
+  }
+}
+
+async function createChainHandler(endpoint, logger) {
+  const steps = endpoint.chainHandler.steps;
+  const outputMapping = endpoint.chainHandler.output;
+
+  return async (input, req) => {
+    const context = {
+      input,
+      steps: [],
+      stepsByName: {},
+      previousStep: null
+    };
+
+    // Execute steps sequentially
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+
+      // Resolve endpoint handler
+      const targetEndpoint = getHandler(step.endpoint);
+      if (!targetEndpoint) {
+        throw new ChainExecutionError(
+          `Chain step references unknown endpoint: ${step.endpoint}`,
+          i,
+          step.name,
+          step.endpoint,
+          new Error(`Endpoint "${step.endpoint}" not found in registry`)
+        );
+      }
+
+      // Compile input from template
+      let stepInput;
+      try {
+        stepInput = compileTemplate(step.input, context);
+      } catch (err) {
+        throw new ChainExecutionError(
+          `Failed to compile input for step ${i} (${step.endpoint}): ${err.message}`,
+          i,
+          step.name,
+          step.endpoint,
+          err
+        );
+      }
+
+      // Validate step input
+      if (targetEndpoint.validateInput && !targetEndpoint.validateInput(stepInput)) {
+        const errors = targetEndpoint.validateInput.errors || [];
+        throw new ChainExecutionError(
+          `Step ${i} input validation failed for endpoint "${step.endpoint}": ${JSON.stringify(errors)}`,
+          i,
+          step.name,
+          step.endpoint,
+          new Error('Input validation failed')
+        );
+      }
+
+      // Execute handler
+      logger.info(`Chain ${endpoint.name}: executing step ${i} (${step.endpoint})`);
+      let stepOutput;
+      try {
+        stepOutput = await targetEndpoint.handler(stepInput, req);
+      } catch (err) {
+        throw new ChainExecutionError(
+          `Step ${i} execution failed for endpoint "${step.endpoint}": ${err.message}`,
+          i,
+          step.name,
+          step.endpoint,
+          err
+        );
+      }
+
+      // Validate step output
+      if (targetEndpoint.validateOutput && !targetEndpoint.validateOutput(stepOutput)) {
+        const errors = targetEndpoint.validateOutput.errors || [];
+        throw new ChainExecutionError(
+          `Step ${i} output validation failed for endpoint "${step.endpoint}": ${JSON.stringify(errors)}`,
+          i,
+          step.name,
+          step.endpoint,
+          new Error('Output validation failed')
+        );
+      }
+
+      // Store in context
+      context.steps[i] = stepOutput;
+      if (step.name) {
+        context.stepsByName[step.name] = stepOutput;
+      }
+      context.previousStep = stepOutput;
+
+      logger.info(`Chain ${endpoint.name}: step ${i} completed successfully`);
+    }
+
+    // Compile final output
+    // If no output mapping specified, return the last step's output
+    const finalOutputTemplate = outputMapping || context.previousStep;
+    try {
+      return compileTemplate(finalOutputTemplate, context);
+    } catch (err) {
+      throw new Error(`Failed to compile final output: ${err.message}`);
+    }
+  };
+}
+
+// Detect circular dependencies in chain configurations
+function detectCircularDependencies(config) {
+  const graph = new Map();
+
+  // Build dependency graph
+  for (const endpoint of config.endpoints) {
+    if (endpoint.chainHandler) {
+      const deps = endpoint.chainHandler.steps.map(s => s.endpoint);
+      graph.set(endpoint.name, deps);
+    } else {
+      graph.set(endpoint.name, []);
+    }
+  }
+
+  // DFS cycle detection
+  const visiting = new Set();
+  const visited = new Set();
+
+  function visit(name, path = []) {
+    if (visiting.has(name)) {
+      const cycle = [...path, name];
+      throw new Error(`Circular dependency detected: ${cycle.join(' -> ')}`);
+    }
+    if (visited.has(name)) return;
+
+    visiting.add(name);
+    const deps = graph.get(name) || [];
+    for (const dep of deps) {
+      // Check if the dependency exists
+      if (!graph.has(dep)) {
+        throw new Error(
+          `Chain endpoint "${name}" references unknown endpoint "${dep}". ` +
+          `Available endpoints: ${Array.from(graph.keys()).join(', ')}`
+        );
+      }
+      visit(dep, [...path, name]);
+    }
+    visiting.delete(name);
+    visited.add(name);
+  }
+
+  // Visit all endpoints
+  for (const name of graph.keys()) {
+    visit(name);
+  }
+}
+
 // Cleanup function to close MCP client (for tests and shutdown)
 function closeWorkiqClient() {
   if (mcpClient) {
@@ -450,4 +630,12 @@ function closeWorkiqClient() {
   }
 }
 
-module.exports = { createHandler, closeWorkiqClient };
+module.exports = {
+  createHandler,
+  closeWorkiqClient,
+  registerHandler,
+  getHandler,
+  clearHandlerRegistry,
+  detectCircularDependencies,
+  ChainExecutionError
+};

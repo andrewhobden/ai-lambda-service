@@ -1,0 +1,76 @@
+{
+  "port": 4002,
+  "endpoints": [
+    {
+      "name": "add-one",
+      "description": "Add one to a number",
+      "path": "/add-one",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["value"],
+        "properties": { "value": { "type": "number" } }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["result"],
+        "properties": { "result": { "type": "number" } }
+      },
+      "jsHandler": { "file": "handlers/add-one.js" }
+    },
+    {
+      "name": "double",
+      "description": "Double a number",
+      "path": "/double",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["value"],
+        "properties": { "value": { "type": "number" } }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["result"],
+        "properties": { "result": { "type": "number" } }
+      },
+      "jsHandler": { "file": "handlers/double.js" }
+    },
+    {
+      "name": "add-then-double",
+      "description": "Chain: Add one then double the result",
+      "path": "/add-then-double",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["value"],
+        "properties": { "value": { "type": "number" } }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["original", "final"],
+        "properties": {
+          "original": { "type": "number" },
+          "final": { "type": "number" }
+        }
+      },
+      "chainHandler": {
+        "steps": [
+          {
+            "name": "add",
+            "endpoint": "add-one",
+            "input": { "value": "{{input.value}}" }
+          },
+          {
+            "name": "mult",
+            "endpoint": "double",
+            "input": { "value": "{{add.result}}" }
+          }
+        ],
+        "output": {
+          "original": "{{input.value}}",
+          "final": "{{mult.result}}"
+        }
+      }
+    }
+  ]
+}

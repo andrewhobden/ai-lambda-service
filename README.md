@@ -1,6 +1,6 @@
 # ai-lambda-service
 
-Run a local REST server from a declarative JSON config. Each endpoint can be backed by an OpenAI prompt, a JavaScript handler, or a Microsoft 365 Copilot query via [WorkIQ](https://github.com/microsoft/work-iq-mcp).
+Run a local REST server from a declarative JSON config. Each endpoint can be backed by an OpenAI prompt, a JavaScript handler, a Microsoft 365 Copilot query via [WorkIQ](https://github.com/microsoft/work-iq-mcp), or a chain of multiple endpoints for advanced workflows.
 
 ## Installation
 
@@ -300,9 +300,54 @@ ai-lambda-service stop
 ## How it works
 - Config is validated with AJV in [src/config.js](src/config.js).
 - Routes are bound in [src/server.js](src/server.js) using Express.
-- Each endpoint uses either an OpenAI chat completion, a JS handler, or a WorkIQ query via [src/engine.js](src/engine.js).
+- Each endpoint uses either an OpenAI chat completion, a JS handler, a WorkIQ query, or a chain of other endpoints via [src/engine.js](src/engine.js).
 - Input/output validation uses JSON Schema per-endpoint.
 - **Output format**: When `outputSchema` is defined, responses are JSON. Without it, AI endpoints return plain text directly—useful for translations, summaries, etc.
+
+## Chaining Endpoints
+
+Create advanced workflows by chaining multiple endpoints together. The output of one endpoint becomes the input to the next:
+
+```json
+{
+  "name": "greeting-analyzed",
+  "path": "/greeting-analyzed",
+  "method": "POST",
+  "chainHandler": {
+    "steps": [
+      {
+        "name": "greet",
+        "endpoint": "greeting",
+        "input": { "name": "{{input.name}}" }
+      },
+      {
+        "name": "analyze",
+        "endpoint": "sentiment",
+        "input": { "text": "{{greet.greeting}}" }
+      }
+    ],
+    "output": {
+      "greeting": "{{greet.greeting}}",
+      "sentiment": "{{analyze.sentiment}}"
+    }
+  }
+}
+```
+
+This chain:
+1. Generates a greeting for the provided name
+2. Analyzes the sentiment of the greeting
+3. Returns both the greeting and sentiment
+
+**Template syntax**: Use `{{input.field}}`, `{{stepName.field}}`, or `{{previousStep.field}}` to reference data between steps.
+
+**Features**:
+- Sequential execution with data flow between steps
+- Full validation at each step
+- Circular dependency detection at startup
+- Clear error messages with step context
+
+See [examples/chain.json](examples/chain.json) for complete examples and [CONFIG.md](CONFIG.md) for full documentation.
 
 ## Testing
 ```

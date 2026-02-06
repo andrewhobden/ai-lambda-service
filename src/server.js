@@ -1,6 +1,6 @@
 const express = require('express');
 const Ajv = require('ajv');
-const { createHandler } = require('./engine');
+const { createHandler, registerHandler, clearHandlerRegistry } = require('./engine');
 
 let currentServer = null;
 
@@ -11,7 +11,8 @@ function generateIndexPage(config, port) {
     path: ep.path,
     method: ep.method,
     inputSchema: ep.inputSchema || null,
-    handlerType: ep.aiPrompt ? 'AI Prompt' : ep.workiqQuery ? 'Workiq Query' : 'JS Handler'
+    handlerType: ep.aiPrompt ? 'AI Prompt' : ep.workiqQuery ? 'Workiq Query' : ep.chainHandler ? 'Chain' : 'JS Handler',
+    chainSteps: ep.chainHandler?.steps
   }));
 
   return `<!DOCTYPE html>
@@ -244,15 +245,62 @@ async function startServer({ config, port, logger = console }) {
       method: ep.method,
       inputSchema: ep.inputSchema || null,
       outputSchema: ep.outputSchema || null,
-      handlerType: ep.aiPrompt ? 'AI Prompt' : 'JS Handler'
+      handlerType: ep.aiPrompt ? 'AI Prompt' : ep.workiqQuery ? 'Workiq Query' : ep.chainHandler ? 'Chain' : 'JS Handler',
+      chainSteps: ep.chainHandler?.steps
     })));
   });
 
+  // Clear the handler registry to ensure clean state
+  clearHandlerRegistry();
+
+  // Two-pass handler creation:
+  // Pass 1: Create all non-chain handlers first and register them
+  const chainEndpoints = [];
+  const handlers = new Map();
+
   for (const endpoint of config.endpoints) {
-    const method = endpoint.method.toLowerCase();
+    if (endpoint.chainHandler) {
+      chainEndpoints.push(endpoint);
+      continue;
+    }
+
     const validateInput = endpoint.inputSchema ? ajv.compile(endpoint.inputSchema) : null;
     const validateOutput = endpoint.outputSchema ? ajv.compile(endpoint.outputSchema) : null;
     const handler = await createHandler(endpoint, config.baseDir, logger, config);
+
+    // Register handler for potential use by chain handlers
+    registerHandler(endpoint.name, handler, validateInput, validateOutput);
+
+    // Store for route binding later
+    handlers.set(endpoint.name, {
+      endpoint,
+      handler,
+      validateInput,
+      validateOutput
+    });
+  }
+
+  // Pass 2: Create chain handlers (they can now reference handlers from Pass 1)
+  for (const endpoint of chainEndpoints) {
+    const validateInput = endpoint.inputSchema ? ajv.compile(endpoint.inputSchema) : null;
+    const validateOutput = endpoint.outputSchema ? ajv.compile(endpoint.outputSchema) : null;
+    const handler = await createHandler(endpoint, config.baseDir, logger, config);
+
+    // Register chain handler
+    registerHandler(endpoint.name, handler, validateInput, validateOutput);
+
+    // Store for route binding
+    handlers.set(endpoint.name, {
+      endpoint,
+      handler,
+      validateInput,
+      validateOutput
+    });
+  }
+
+  // Pass 3: Bind all routes to Express
+  for (const { endpoint, handler, validateInput, validateOutput } of handlers.values()) {
+    const method = endpoint.method.toLowerCase();
 
     if (typeof app[method] !== 'function') {
       throw new Error(`Unsupported method ${endpoint.method} for ${endpoint.path}`);

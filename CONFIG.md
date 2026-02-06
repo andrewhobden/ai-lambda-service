@@ -27,6 +27,7 @@ Environment:
   - `aiPrompt`: `{ prompt: string, model?: string, temperature?: number, baseUrl?: string, apiKey?: string }`
   - `jsHandler`: `{ file: string, export?: string }` where `file` is relative to the config file directory.
   - `workiqQuery`: `{ query: string }` where `query` is the Workiq copilot query to execute.
+  - `chainHandler`: `{ steps: array, output?: object }` to orchestrate multiple endpoints in sequence.
 
 ## AI prompt behavior
 - Builds messages with `description` as the system message and `aiPrompt.prompt` + input JSON as the user message.
@@ -167,5 +168,140 @@ This endpoint returns plain text like `你好` instead of JSON.
 ```
 This endpoint calls `workiq ask -q "What meetings do I have on Monday afternoon? Return as JSON with a 'meetings' array."` when called with `?day=Monday&timeOfDay=afternoon`.
 
-## Example
-See `examples/basic.json` for a working sample with both an AI prompt and a JS handler.
+## Chain handler behavior
+
+Chain handlers orchestrate multi-step workflows by calling other endpoints sequentially. The output of one step becomes available as input to subsequent steps.
+
+### Configuration
+
+- `chainHandler.steps` (array, required): Array of step definitions to execute in sequence.
+  - `step.name` (string, optional): Named reference for this step. Useful for referencing its output in later steps.
+  - `step.endpoint` (string, required): Name of the endpoint to call (must be defined in the same config).
+  - `step.input` (object, required): Input mapping with template expressions to pass to the endpoint.
+- `chainHandler.output` (object, optional): Output mapping template. If omitted, returns the last step's output.
+
+### Template expressions
+
+Use `{{...}}` syntax to reference data in step inputs and output mappings:
+
+- `{{input.field}}` - Access the chain's input data
+- `{{stepName.field}}` - Access output from a named step
+- `{{steps[0].field}}` - Access output from a step by index (0-based)
+- `{{previousStep.field}}` - Access output from the immediately previous step
+
+**Important limitations:**
+- Only single template expressions are supported: `"{{path}}"` ✓
+- Embedded templates are not supported: `"Hello {{name}}!"` ✗
+- Only path lookups are supported, no complex expressions or transformations
+
+### Example: Simple chain
+
+```json
+{
+  "name": "greeting-with-sentiment",
+  "path": "/greeting-analyzed",
+  "method": "POST",
+  "inputSchema": {
+    "type": "object",
+    "required": ["name"],
+    "properties": { "name": { "type": "string" } }
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": ["greeting", "sentiment"],
+    "properties": {
+      "greeting": { "type": "string" },
+      "sentiment": { "type": "string" }
+    }
+  },
+  "chainHandler": {
+    "steps": [
+      {
+        "name": "greet",
+        "endpoint": "greeting",
+        "input": {
+          "name": "{{input.name}}"
+        }
+      },
+      {
+        "name": "analyze",
+        "endpoint": "sentiment",
+        "input": {
+          "text": "{{greet.greeting}}"
+        }
+      }
+    ],
+    "output": {
+      "greeting": "{{greet.greeting}}",
+      "sentiment": "{{analyze.sentiment}}"
+    }
+  }
+}
+```
+
+This chain:
+1. Calls the `greeting` endpoint with the input name
+2. Passes the greeting to the `sentiment` endpoint
+3. Returns both the greeting and sentiment in the final output
+
+### Example: Using previousStep
+
+```json
+{
+  "name": "simple-chain",
+  "path": "/simple-chain",
+  "method": "POST",
+  "chainHandler": {
+    "steps": [
+      {
+        "endpoint": "greeting",
+        "input": { "name": "{{input.name}}" }
+      },
+      {
+        "endpoint": "uppercase",
+        "input": { "text": "{{previousStep.greeting}}" }
+      }
+    ]
+  }
+}
+```
+
+When no `output` mapping is specified, the chain returns the last step's output.
+
+### Validation
+
+- Each step's input is validated against the target endpoint's `inputSchema` (if defined)
+- Each step's output is validated against the target endpoint's `outputSchema` (if defined)
+- The final output is validated against the chain endpoint's `outputSchema` (if defined)
+- Validation failures include the step index and endpoint name in the error message
+
+### Error handling
+
+If any step fails:
+- The chain stops immediately
+- A `ChainExecutionError` is returned with details about:
+  - Which step failed (index and name)
+  - Which endpoint was being called
+  - The underlying error message
+
+### Circular dependencies
+
+The service detects circular dependencies at startup:
+- Chain A cannot call Chain B if Chain B calls Chain A
+- Circular references will cause the server to fail to start with a clear error message
+- Chains can call non-chain endpoints without restriction
+
+### Limitations (v1.0)
+
+- ✅ Sequential execution (one step after another)
+- ✅ Template-based data mapping
+- ✅ Full validation at each step
+- ❌ Parallel execution (all steps run at once)
+- ❌ Conditional branching (if/else logic)
+- ❌ Retry logic for failed steps
+- ❌ Chains calling other chains (all referenced endpoints must be non-chain)
+
+## Examples
+
+- See `examples/basic.json` for AI prompts and JS handlers.
+- See `examples/chain.json` for complete chain handler examples.

@@ -1,0 +1,283 @@
+{
+  "port": 4000,
+  "defaultModel": "gpt-4o-mini",
+  "endpoints": [
+    {
+      "name": "greeting",
+      "description": "Generate a friendly greeting for the provided name.",
+      "path": "/greeting",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["greeting"],
+        "properties": {
+          "greeting": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "aiPrompt": {
+        "prompt": "Generate a warm, friendly greeting for the person. Return a JSON object with a 'greeting' key containing a single sentence.",
+        "temperature": 0.8
+      }
+    },
+    {
+      "name": "sentiment",
+      "description": "Analyze the sentiment of the provided text.",
+      "path": "/sentiment",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["sentiment", "confidence"],
+        "properties": {
+          "sentiment": { "type": "string", "enum": ["positive", "negative", "neutral"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "additionalProperties": false
+      },
+      "aiPrompt": {
+        "prompt": "Analyze the sentiment of the provided text. Return a JSON object with 'sentiment' (positive, negative, or neutral) and 'confidence' (0-1) keys.",
+        "temperature": 0.3
+      }
+    },
+    {
+      "name": "uppercase",
+      "description": "Convert text to uppercase using a JS handler.",
+      "path": "/uppercase",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["result"],
+        "properties": {
+          "result": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "jsHandler": {
+        "file": "handlers/uppercase.js"
+      }
+    },
+    {
+      "name": "word-count",
+      "description": "Count words in text using a JS handler.",
+      "path": "/word-count",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["count"],
+        "properties": {
+          "count": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "jsHandler": {
+        "file": "handlers/word-count.js"
+      }
+    },
+    {
+      "name": "greeting-with-sentiment",
+      "description": "Chain example: Generate a greeting and analyze its sentiment.",
+      "path": "/greeting-analyzed",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["greeting", "sentiment", "confidence"],
+        "properties": {
+          "greeting": { "type": "string" },
+          "sentiment": { "type": "string" },
+          "confidence": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "chainHandler": {
+        "steps": [
+          {
+            "name": "greet",
+            "endpoint": "greeting",
+            "input": {
+              "name": "{{input.name}}"
+            }
+          },
+          {
+            "name": "analyze",
+            "endpoint": "sentiment",
+            "input": {
+              "text": "{{greet.greeting}}"
+            }
+          }
+        ],
+        "output": {
+          "greeting": "{{greet.greeting}}",
+          "sentiment": "{{analyze.sentiment}}",
+          "confidence": "{{analyze.confidence}}"
+        }
+      }
+    },
+    {
+      "name": "greeting-uppercase",
+      "description": "Chain example: Generate a greeting then convert to uppercase.",
+      "path": "/greeting-uppercase",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["result"],
+        "properties": {
+          "result": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "chainHandler": {
+        "steps": [
+          {
+            "name": "greet",
+            "endpoint": "greeting",
+            "input": {
+              "name": "{{input.name}}"
+            }
+          },
+          {
+            "name": "transform",
+            "endpoint": "uppercase",
+            "input": {
+              "text": "{{greet.greeting}}"
+            }
+          }
+        ],
+        "output": {
+          "result": "{{transform.result}}"
+        }
+      }
+    },
+    {
+      "name": "greeting-analysis",
+      "description": "Chain example: Generate greeting, analyze sentiment, and count words (3 steps).",
+      "path": "/greeting-full-analysis",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["greeting", "sentiment", "wordCount"],
+        "properties": {
+          "greeting": { "type": "string" },
+          "sentiment": { "type": "string" },
+          "wordCount": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "chainHandler": {
+        "steps": [
+          {
+            "name": "greet",
+            "endpoint": "greeting",
+            "input": {
+              "name": "{{input.name}}"
+            }
+          },
+          {
+            "name": "analyze",
+            "endpoint": "sentiment",
+            "input": {
+              "text": "{{greet.greeting}}"
+            }
+          },
+          {
+            "name": "count",
+            "endpoint": "word-count",
+            "input": {
+              "text": "{{greet.greeting}}"
+            }
+          }
+        ],
+        "output": {
+          "greeting": "{{greet.greeting}}",
+          "sentiment": "{{analyze.sentiment}}",
+          "wordCount": "{{count.count}}"
+        }
+      }
+    },
+    {
+      "name": "simple-chain",
+      "description": "Minimal chain example with default output (returns last step result).",
+      "path": "/simple-chain",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "chainHandler": {
+        "steps": [
+          {
+            "endpoint": "greeting",
+            "input": {
+              "name": "{{input.name}}"
+            }
+          },
+          {
+            "endpoint": "sentiment",
+            "input": {
+              "text": "{{previousStep.greeting}}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

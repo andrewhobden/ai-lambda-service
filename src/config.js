@@ -1,6 +1,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const Ajv = require('ajv');
+const { detectCircularDependencies } = require('./engine');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 
@@ -42,6 +43,28 @@ const endpointSchema = {
       required: ['query'],
       properties: {
         query: { type: 'string', minLength: 1 }
+      }
+    },
+    chainHandler: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['steps'],
+      properties: {
+        steps: {
+          type: 'array',
+          minItems: 1,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['endpoint', 'input'],
+            properties: {
+              name: { type: 'string', minLength: 1 },
+              endpoint: { type: 'string', minLength: 1 },
+              input: { type: 'object' }
+            }
+          }
+        },
+        output: { type: 'object' }
       }
     }
   }
@@ -92,12 +115,16 @@ async function loadConfig(configPath, logger = console) {
     const hasPrompt = Boolean(ep.aiPrompt);
     const hasJs = Boolean(ep.jsHandler);
     const hasWorkiq = Boolean(ep.workiqQuery);
-    const handlerCount = [hasPrompt, hasJs, hasWorkiq].filter(Boolean).length;
+    const hasChain = Boolean(ep.chainHandler);
+    const handlerCount = [hasPrompt, hasJs, hasWorkiq, hasChain].filter(Boolean).length;
     if (handlerCount !== 1) {
-      throw new Error(`Endpoint at index ${index} must specify exactly one of aiPrompt, jsHandler, or workiqQuery.`);
+      throw new Error(`Endpoint at index ${index} must specify exactly one of aiPrompt, jsHandler, workiqQuery, or chainHandler.`);
     }
     ep.method = ep.method.toUpperCase();
   });
+
+  // Detect circular dependencies in chain handlers
+  detectCircularDependencies(parsed);
 
   const config = { ...parsed, baseDir: path.dirname(fullPath) };
   logger.info(`Loaded config from ${fullPath} with ${config.endpoints.length} endpoints.`);
