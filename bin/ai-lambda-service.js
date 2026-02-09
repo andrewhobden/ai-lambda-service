@@ -35,7 +35,7 @@ async function handleCommand(command, options) {
     try {
       const config = await loadConfig(configPath, logger);
       const port = options.port || config.port || 3000;
-      await startServer({ config, port, logger });
+      await startServer({ config, port, logger, configPath });
     } catch (err) {
       logger.error(`Failed to start: ${err.message}`);
       if (logger.isDebugEnabled()) {

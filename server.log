@@ -1,0 +1,69 @@
+
+> ai-lambda-service@1.3.0 start
+> node bin/ai-lambda-service.js start start -c examples/chain.json -p 4000
+
+[2026-02-06T06:58:54.957Z] INFO Loaded config from /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json with 8 endpoints.
+[2026-02-06T06:58:55.051Z] INFO Binding POST /greeting -> greeting
+[2026-02-06T06:58:55.051Z] INFO Binding POST /sentiment -> sentiment
+[2026-02-06T06:58:55.052Z] INFO Binding POST /uppercase -> uppercase
+[2026-02-06T06:58:55.052Z] INFO Binding POST /word-count -> word-count
+[2026-02-06T06:58:55.052Z] INFO Binding POST /greeting-analyzed -> greeting-with-sentiment
+[2026-02-06T06:58:55.052Z] INFO Binding POST /greeting-uppercase -> greeting-uppercase
+[2026-02-06T06:58:55.052Z] INFO Binding POST /greeting-full-analysis -> greeting-analysis
+[2026-02-06T06:58:55.052Z] INFO Binding POST /simple-chain -> simple-chain
+[2026-02-06T06:58:55.054Z] INFO ai-lambda-service listening on http://localhost:4000
+[2026-02-06T09:28:51.192Z] INFO Config saved to /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json
+[2026-02-06T09:28:53.196Z] INFO Restarting server to apply config changes...
+[2026-02-06T09:28:53.196Z] INFO Loaded config from /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json with 9 endpoints.
+[2026-02-06T09:28:53.210Z] INFO Binding POST /greeting -> greeting
+[2026-02-06T09:28:53.210Z] INFO Binding POST /sentiment -> sentiment
+[2026-02-06T09:28:53.210Z] INFO Binding POST /uppercase -> uppercase
+[2026-02-06T09:28:53.210Z] INFO Binding POST /word-count -> word-count
+[2026-02-06T09:28:53.210Z] INFO Binding POST /test -> test-endpoint
+[2026-02-06T09:28:53.210Z] INFO Binding POST /greeting-analyzed -> greeting-with-sentiment
+[2026-02-06T09:28:53.210Z] INFO Binding POST /greeting-uppercase -> greeting-uppercase
+[2026-02-06T09:28:53.211Z] INFO Binding POST /greeting-full-analysis -> greeting-analysis
+[2026-02-06T09:28:53.211Z] INFO Binding POST /simple-chain -> simple-chain
+[2026-02-06T09:28:53.211Z] INFO Server restarted successfully
+[2026-02-06T09:28:53.211Z] INFO ai-lambda-service listening on http://localhost:4000
+[2026-02-06T09:29:24.172Z] INFO Config saved to /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json
+[2026-02-06T09:29:26.172Z] INFO Restarting server to apply config changes...
+[2026-02-06T09:29:26.173Z] INFO Loaded config from /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json with 9 endpoints.
+[2026-02-06T09:29:26.182Z] INFO Binding POST /greeting -> greeting
+[2026-02-06T09:29:26.183Z] INFO Binding POST /sentiment -> sentiment
+[2026-02-06T09:29:26.183Z] INFO Binding POST /uppercase -> uppercase
+[2026-02-06T09:29:26.183Z] INFO Binding POST /word-count -> word-count
+[2026-02-06T09:29:26.183Z] INFO Binding POST /test -> test-endpoint
+[2026-02-06T09:29:26.183Z] INFO Binding POST /greeting-analyzed -> greeting-with-sentiment
+[2026-02-06T09:29:26.183Z] INFO Binding POST /greeting-uppercase -> greeting-uppercase
+[2026-02-06T09:29:26.183Z] INFO Binding POST /greeting-full-analysis -> greeting-analysis
+[2026-02-06T09:29:26.183Z] INFO Binding POST /simple-chain -> simple-chain
+[2026-02-06T09:29:26.183Z] INFO Server restarted successfully
+[2026-02-06T09:29:26.183Z] INFO ai-lambda-service listening on http://localhost:4000
+[2026-02-06T09:29:32.364Z] INFO Config saved to /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json
+[2026-02-06T09:29:34.367Z] INFO Restarting server to apply config changes...
+[2026-02-06T09:29:34.372Z] INFO Loaded config from /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json with 8 endpoints.
+[2026-02-06T09:29:34.438Z] INFO Binding POST /greeting -> greeting
+[2026-02-06T09:29:34.438Z] INFO Binding POST /sentiment -> sentiment
+[2026-02-06T09:29:34.438Z] INFO Binding POST /uppercase -> uppercase
+[2026-02-06T09:29:34.438Z] INFO Binding POST /word-count -> word-count
+[2026-02-06T09:29:34.438Z] INFO Binding POST /greeting-analyzed -> greeting-with-sentiment
+[2026-02-06T09:29:34.438Z] INFO Binding POST /greeting-uppercase -> greeting-uppercase
+[2026-02-06T09:29:34.438Z] INFO Binding POST /greeting-full-analysis -> greeting-analysis
+[2026-02-06T09:29:34.438Z] INFO Binding POST /simple-chain -> simple-chain
+[2026-02-06T09:29:34.441Z] INFO Server restarted successfully
+[2026-02-06T09:29:34.441Z] INFO ai-lambda-service listening on http://localhost:4000
+[2026-02-09T00:28:29.954Z] INFO Config saved to /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json
+[2026-02-09T00:28:31.955Z] INFO Restarting server to apply config changes...
+[2026-02-09T00:28:31.957Z] INFO Loaded config from /Users/anhobden/Documents/GitHub/ai-lambda-service/examples/chain.json with 9 endpoints.
+[2026-02-09T00:28:31.982Z] INFO Binding POST /greeting -> greeting
+[2026-02-09T00:28:31.982Z] INFO Binding POST /sentiment -> sentiment
+[2026-02-09T00:28:31.982Z] INFO Binding POST /uppercase -> uppercase
+[2026-02-09T00:28:31.982Z] INFO Binding POST /word-count -> word-count
+[2026-02-09T00:28:31.982Z] INFO Binding GET /weatherbymonth -> weatherbymonth
+[2026-02-09T00:28:31.982Z] INFO Binding POST /greeting-analyzed -> greeting-with-sentiment
+[2026-02-09T00:28:31.982Z] INFO Binding POST /greeting-uppercase -> greeting-uppercase
+[2026-02-09T00:28:31.982Z] INFO Binding POST /greeting-full-analysis -> greeting-analysis
+[2026-02-09T00:28:31.982Z] INFO Binding POST /simple-chain -> simple-chain
+[2026-02-09T00:28:31.982Z] INFO Server restarted successfully
+[2026-02-09T00:28:31.982Z] INFO ai-lambda-service listening on http://localhost:4000

@@ -131,4 +131,36 @@ async function loadConfig(configPath, logger = console) {
   return config;
 }
 
-module.exports = { loadConfig };
+async function saveConfig(config, configPath, logger = console) {
+  // Remove baseDir before validation (it's derived, not part of config file)
+  const { baseDir, ...configToSave } = config;
+
+  // Validate config before saving
+  const valid = validateConfig(configToSave);
+  if (!valid) {
+    throw new Error(`Config validation failed: ${ajv.errorsText(validateConfig.errors)}`);
+  }
+
+  // Validate handler types
+  configToSave.endpoints.forEach((ep, index) => {
+    const hasPrompt = Boolean(ep.aiPrompt);
+    const hasJs = Boolean(ep.jsHandler);
+    const hasWorkiq = Boolean(ep.workiqQuery);
+    const hasChain = Boolean(ep.chainHandler);
+    const handlerCount = [hasPrompt, hasJs, hasWorkiq, hasChain].filter(Boolean).length;
+    if (handlerCount !== 1) {
+      throw new Error(`Endpoint ${index} must have exactly one handler type`);
+    }
+  });
+
+  // Detect circular dependencies
+  detectCircularDependencies(configToSave);
+
+  // Write with pretty formatting
+  const json = JSON.stringify(configToSave, null, 2);
+  await fs.writeFile(configPath, json, 'utf8');
+
+  logger.info(`Config saved to ${configPath}`);
+}
+
+module.exports = { loadConfig, saveConfig, endpointSchema };

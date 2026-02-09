@@ -9,17 +9,25 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string" }
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["greeting"],
+        "required": [
+          "greeting"
+        ],
         "properties": {
-          "greeting": { "type": "string" }
+          "greeting": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -35,18 +43,36 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["text"],
+        "required": [
+          "text"
+        ],
         "properties": {
-          "text": { "type": "string" }
+          "text": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["sentiment", "confidence"],
+        "required": [
+          "sentiment",
+          "confidence"
+        ],
         "properties": {
-          "sentiment": { "type": "string", "enum": ["positive", "negative", "neutral"] },
-          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+          "sentiment": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "additionalProperties": false
       },
@@ -62,17 +88,25 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["text"],
+        "required": [
+          "text"
+        ],
         "properties": {
-          "text": { "type": "string" }
+          "text": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["result"],
+        "required": [
+          "result"
+        ],
         "properties": {
-          "result": { "type": "string" }
+          "result": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -87,17 +121,25 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["text"],
+        "required": [
+          "text"
+        ],
         "properties": {
-          "text": { "type": "string" }
+          "text": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["count"],
+        "required": [
+          "count"
+        ],
         "properties": {
-          "count": { "type": "number" }
+          "count": {
+            "type": "number"
+          }
         },
         "additionalProperties": false
       },
@@ -112,19 +154,33 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string" }
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["greeting", "sentiment", "confidence"],
+        "required": [
+          "greeting",
+          "sentiment",
+          "confidence"
+        ],
         "properties": {
-          "greeting": { "type": "string" },
-          "sentiment": { "type": "string" },
-          "confidence": { "type": "number" }
+          "greeting": {
+            "type": "string"
+          },
+          "sentiment": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number"
+          }
         },
         "additionalProperties": false
       },
@@ -159,17 +215,25 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string" }
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["result"],
+        "required": [
+          "result"
+        ],
         "properties": {
-          "result": { "type": "string" }
+          "result": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -202,19 +266,33 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string" }
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "required": ["greeting", "sentiment", "wordCount"],
+        "required": [
+          "greeting",
+          "sentiment",
+          "wordCount"
+        ],
         "properties": {
-          "greeting": { "type": "string" },
-          "sentiment": { "type": "string" },
-          "wordCount": { "type": "number" }
+          "greeting": {
+            "type": "string"
+          },
+          "sentiment": {
+            "type": "string"
+          },
+          "wordCount": {
+            "type": "number"
+          }
         },
         "additionalProperties": false
       },
@@ -256,9 +334,13 @@
       "method": "POST",
       "inputSchema": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string" }
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -277,6 +359,31 @@
             }
           }
         ]
+      }
+    },
+    {
+      "name": "weatherbymonth",
+      "description": "Get's a description of the typical weather conditions for a specified city during a specified month of the year.",
+      "path": "/weatherbymonth",
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "city",
+          "month"
+        ],
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "aiPrompt": {
+        "prompt": "Write a description of the typical weather conditions at the specified city during the month specified.  You should discuss temperature, rainfall, windspeed, humidity and any other local specialities."
       }
     }
   ]
